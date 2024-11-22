@@ -1,0 +1,60 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15
+    container_name: scooter_system_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: scooter_db
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - scooter_network
+
+  api:
+    image: node:18
+    container_name: scooter_system_api
+    working_dir: /app
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgres://admin:password@db:5432/scooter_db
+    depends_on:
+      - db
+    command: ["npm", "start"]
+    networks:
+      - scooter_network
+
+  frontend:
+    image: node:18
+    container_name: scooter_system_frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "8080:8080"
+    command: ["npm", "start"]
+    networks:
+      - scooter_network
+
+  adminer:
+    image: adminer
+    container_name: scooter_system_adminer
+    ports:
+      - "8081:8080"
+    networks:
+      - scooter_network
+
+volumes:
+  db_data:
+
+networks:
+  scooter_network:
